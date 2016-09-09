@@ -4,14 +4,23 @@ module.exports = router;
 var zipcodeList = {}
 
 function validateZipcode (zipcode) {
-  return zipcode.search(/^[0-9][0-9][0-9][0-9][0-9]$/) >= 0
+  return /^[0-9]{5}$/.test(zipcode)
 }
 
 function formatZipcodeList (list) {
   var zipcodes = Object.keys(list)
   zipcodes = zipcodes.map(function(zipcode) {
-    if (list[(+zipcode - 1).toString()]) {
-      if (list[(+zipcode + 1).toString()]) {
+    var filler = ''
+    if ((+zipcode - 1).toString().length < 5) {
+      filler = '0'
+    }
+    if (list[filler + (+zipcode - 1).toString()]) {
+      if ((+zipcode + 1).toString().length < 5) {
+        filler = '0'
+      } else {
+        filler = ''
+      }
+      if (list[filler + (+zipcode + 1).toString()]) {
         return ''
       } else {
         return '-' + zipcode
@@ -20,7 +29,7 @@ function formatZipcodeList (list) {
     return zipcode
   })
   zipcodes = zipcodes.join(', ')
-  zipcodes = zipcodes.replace(/(, )+\-/, '-')
+  zipcodes = zipcodes.replace(/(, )+\-/g, '-')
   return zipcodes
 }
 
@@ -48,8 +57,8 @@ router.delete('/delete/:zipcode', function (req, res) {
 
 router.get('/has/:zipcode', function (req, res) {
   var message = !!zipcodeList[req.params.zipcode];
-  res.send(message);
   console.log(message);
+  res.send(message);
 })
 
 router.get('/display', function (req, res) {
